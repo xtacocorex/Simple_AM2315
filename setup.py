@@ -10,7 +10,7 @@ classifiers = ['Development Status :: 4 - Beta',
                'Topic :: System :: Hardware']
 
 setup(name              = 'Simple_AM2315',
-      version           = '1.0.0',
+      version           = '1.0.2',
       author            = 'Robert Wolterman',
       author_email      = 'robert.wolterman@gmail.com',
       description       = 'Python code to use the AM2315 Temp and Humidity Sensor with a CHIP, Raspberry Pi, or BeagleBone black.',
