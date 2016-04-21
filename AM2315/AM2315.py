@@ -9,6 +9,7 @@ import time
 # GLOBAL VARIABLES
 AM2315_I2CADDR = 0x5C
 AM2315_READREG = 0x03
+MAXREADATTEMPT = 3
 
 class AM2315(object):
     """Base functionality for AM2315 humidity and temperature sensor. """
@@ -22,25 +23,30 @@ class AM2315(object):
         self.temperature = 0
 
     def _read_data(self):
-        print "READ DATA"
-        # TELL THE DEVICE WE WANT 4 BYTES OF DATA
-        self._device.writeList(AM2315_READREG,[0x00, 0x04])
-
-        # QUICK SLEEP
-        time.sleep(0.1)
-
-        # DOING 4 RAW READS TO GET OUR DATA
-        msb_rh = self._device.readRaw8()
-        lsb_rh = self._device.readRaw8()
-        msb_t  = self._device.readRaw8()
-        lsb_t  = self._device.readRaw8()
-
-        # DO MATH
-        self.humidity = ((msb_rh << 8) | lsb_rh) / 10.0
-        self.temperature = (((msb_t & 0x7F) << 8) | lsb_t) / 10.0
-        if (msb_t >> 7):
+        count = 0
+        tmp = None
+        while count <= MAXREADATTEMPT:
+            try:
+                # WAKE UP
+                self._device.write8(AM2315_READREG,0x00)
+                time.sleep(0.09)
+                # TELL THE DEVICE WE WANT 4 BYTES OF DATA
+                self._device.writeList(AM2315_READREG,[0x00, 0x04])
+                time.sleep(0.09)
+                tmp = self._device.readList(AM2315_READREG,8)
+                # IF WE HAVE DATA, LETS EXIT THIS LOOP
+                if tmp != None:
+                    break
+            except:
+                count += 1
+                time.sleep(0.01)
+        
+        # GET THE DATA OUT OF THE LIST WE READ
+        self.humidity = ((tmp[2] << 8) | tmp[3]) / 10.0
+        self.temperature = (((tmp[4] & 0x7F) << 8) | tmp[5]) / 10.0
+        if (tmp[4] & 0x80):
             self.temperature = -self.temperature
-
+ 
     def read_temperature(self):
         self._read_data()
         return self.temperature
