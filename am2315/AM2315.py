@@ -5,6 +5,7 @@
 
 # MODULE IMPORTS
 import time
+import logging
 
 # GLOBAL VARIABLES
 AM2315_I2CADDR = 0x5C
@@ -19,6 +20,7 @@ class AM2315:
             import Adafruit_GPIO.I2C as I2C
             i2c = I2C
         self._device = i2c.get_i2c_device(address, **kwargs)
+        self._logger = logging.getLogger('am2315.AM2315')
         self.humidity = 0
         self.temperature = 0
 
@@ -27,6 +29,7 @@ class AM2315:
         tmp = None
         while count <= MAXREADATTEMPT:
             try:
+                logging.debug('am2315: read attempt: %d',count)
                 # WAKE UP
                 self._device.write8(AM2315_READREG,0x00)
                 time.sleep(0.09)
@@ -36,6 +39,7 @@ class AM2315:
                 tmp = self._device.readList(AM2315_READREG,8)
                 # IF WE HAVE DATA, LETS EXIT THIS LOOP
                 if tmp != None:
+                    logging.debug('am2315: have data!')
                     break
             except:
                 count += 1
@@ -46,16 +50,20 @@ class AM2315:
         self.temperature = (((tmp[4] & 0x7F) << 8) | tmp[5]) / 10.0
         if (tmp[4] & 0x80):
             self.temperature = -self.temperature
+        logging.debug('am2315: humidity: %.3f, temperature: %.3f',self.humidity,self.temperature)
  
     def read_temperature(self):
+        logging.debug('am2315: read_temperature called')
         self._read_data()
         return self.temperature
 
     def read_humidity(self):
+        logging.debug('am2315: read_humidity called')
         self._read_data()
         return self.humidity
 
     def read_humidity_temperature(self):
+        logging.debug('am2315: read_humidity_temperature called')
         self._read_data()
         return (self.humidity, self.temperature)
 
