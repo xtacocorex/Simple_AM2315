@@ -69,7 +69,7 @@ class AM2315:
 
 if __name__ == "__main__":
     am2315 = AM2315()
-    print am2315.read_temperature()
-    print am2315.read_humidity()
-    print am2315.read_humidity_temperature()
+    print(am2315.read_temperature() )
+    print(am2315.read_humidity() )
+    print(am2315.read_humidity_temperature() )
     
