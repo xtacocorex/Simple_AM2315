@@ -67,6 +67,11 @@ class AM2315:
         self._read_data()
         return (self.humidity, self.temperature)
 
+    def read_humidity_temperatureF(self):
+        logging.debug('am2315: read_humidity_temperature called')
+        self._read_data()
+        return (self.humidity, (self.temperature*(9/5))+32 )
+
 if __name__ == "__main__":
     am2315 = AM2315()
     print(am2315.read_temperature() )
