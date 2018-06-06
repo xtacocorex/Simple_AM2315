@@ -45,7 +45,6 @@ class AM2315:
 				# IF WE HAVE DATA, LETS EXIT THIS LOOP
 				if tmp != None:
 					logging.debug('am2315: have data!')
-					print(tmp)
 					# GET THE DATA OUT OF THE LIST WE READ
 					self.humidity = ((tmp[2] << 8) | tmp[3]) / 10.0
 					self.temperature = (((tmp[4] & 0x7F) << 8) | tmp[5]) / 10.0
