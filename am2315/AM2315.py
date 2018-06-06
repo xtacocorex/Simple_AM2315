@@ -27,6 +27,11 @@ class AM2315:
 	def _read_data(self):
 		count = 0
 		tmp = None
+
+		#Reset reading states to zero, so if it fails we realize it
+		self.temperature = 0
+		self.humidity = 0
+
 		while count <= MAXREADATTEMPT:
 			try:
 				logging.debug('am2315: read attempt: %d',count)
@@ -52,12 +57,6 @@ class AM2315:
 				count += 1
 				time.sleep(0.01)
 		
-		# # GET THE DATA OUT OF THE LIST WE READ
-		# self.humidity = ((tmp[2] << 8) | tmp[3]) / 10.0
-		# self.temperature = (((tmp[4] & 0x7F) << 8) | tmp[5]) / 10.0
-		# if (tmp[4] & 0x80):
-		# 	self.temperature = -self.temperature
-		# logging.debug('am2315: humidity: %.3f, temperature: %.3f',self.humidity,self.temperature)
  
 	def read_temperature(self):
 		logging.debug('am2315: read_temperature called')
