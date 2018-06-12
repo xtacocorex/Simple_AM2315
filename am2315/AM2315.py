@@ -16,17 +16,18 @@ MAXREADATTEMPT = 3
 class AM2315:
 	"""Base functionality for AM2315 humidity and temperature sensor. """
 
-	def __init__(self, address=AM2315_I2CADDR, i2c=None, **kwargs):
+	def __init__(self, address=AM2315_I2CADDR, **kwargs):
 		# if i2c is None:
 		# 	import Adafruit_GPIO.I2C as I2C
 		# 	i2c = I2C
 		# self._device = i2c.get_i2c_device(address, **kwargs)
+		self.bus = SMBus(1)
 		self._logger = logging.getLogger('am2315.AM2315')
 		self.humidity = 0
 		self.temperature = 0
 		self.error = False
 
-	def _calculate_crc(buffer,blength):
+	def _calculate_crc(self,blength):
 		crc = 0xFFFF
 		blength = blength - 1 
 		while blength:
@@ -52,18 +53,18 @@ class AM2315:
 				logging.debug('am2315: read attempt: %d',count)
 				# WAKE UP
 				# self._device.write8(AM2315_READREG,0x00)
-				bus.write_byte_data(AM2315_I2CADDR,AM2315_READREG,0)
+				self.bus.write_byte_data(AM2315_I2CADDR,AM2315_READREG,0)
 				time.sleep(0.09)
 				# TELL THE DEVICE WE WANT 4 BYTES OF DATA
 				# self._device.writeList(AM2315_READREG,[0x00, 0x04])
-				bus.write_i2c_block_data(AM2315_I2CADDR,AM2315_READREG,[0x00,0x04])
+				self.bus.write_i2c_block_data(AM2315_I2CADDR,AM2315_READREG,[0x00,0x04])
 				time.sleep(0.09)
 				# tmp = self._device.readList(AM2315_READREG,8)
-				tmp = bus.read_i2c_block_data(AM2315_I2CADDR,AM2315_READREG, 8)
+				tmp = self.bus.read_i2c_block_data(AM2315_I2CADDR,AM2315_READREG, 8)
 				# IF WE HAVE DATA, LETS EXIT THIS LOOP
 				if tmp != None:
 					#Check crc for data errors
-					if check_crc(tmp) == False:
+					if self.check_crc(tmp) == False:
 						self.error = True
 						break
 					else:
@@ -81,8 +82,8 @@ class AM2315:
 				count += 1
 				time.sleep(0.01)
 		
- 	def check_crc(self,dbuf):
-		crc_res = _calculate_crc(dbuf,6)
+	def check_crc(self,dbuf):
+		crc_res = self._calculate_crc(6)
 		crc = (dbuf[7] << 8) + dbuf[6]
 
 		# print("CRC_res:",crc_res)
