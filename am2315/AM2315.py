@@ -6,6 +6,7 @@
 # MODULE IMPORTS
 import time
 import logging
+from smbus2 import SMBus
 
 # GLOBAL VARIABLES
 AM2315_I2CADDR = 0x5C
@@ -16,13 +17,27 @@ class AM2315:
 	"""Base functionality for AM2315 humidity and temperature sensor. """
 
 	def __init__(self, address=AM2315_I2CADDR, i2c=None, **kwargs):
-		if i2c is None:
-			import Adafruit_GPIO.I2C as I2C
-			i2c = I2C
-		self._device = i2c.get_i2c_device(address, **kwargs)
+		# if i2c is None:
+		# 	import Adafruit_GPIO.I2C as I2C
+		# 	i2c = I2C
+		# self._device = i2c.get_i2c_device(address, **kwargs)
 		self._logger = logging.getLogger('am2315.AM2315')
 		self.humidity = 0
 		self.temperature = 0
+		self.error = False
+
+	def _calculate_crc(buffer,blength):
+		crc = 0xFFFF
+		blength = blength - 1 
+		while blength:
+			blength = blength - 1
+			if crc & 0x01:
+				crc = crc >> 1
+				crc = crc ^ 0xA001
+			else:
+				crc = crc >> 1
+
+		return crc
 
 	def _read_data(self):
 		count = 0
@@ -36,27 +51,44 @@ class AM2315:
 			try:
 				logging.debug('am2315: read attempt: %d',count)
 				# WAKE UP
-				self._device.write8(AM2315_READREG,0x00)
+				# self._device.write8(AM2315_READREG,0x00)
+				bus.write_byte_data(AM2315_I2CADDR,AM2315_READREG,0)
 				time.sleep(0.09)
 				# TELL THE DEVICE WE WANT 4 BYTES OF DATA
-				self._device.writeList(AM2315_READREG,[0x00, 0x04])
+				# self._device.writeList(AM2315_READREG,[0x00, 0x04])
+				bus.write_i2c_block_data(AM2315_I2CADDR,AM2315_READREG,[0x00,0x04])
 				time.sleep(0.09)
-				tmp = self._device.readList(AM2315_READREG,8)
+				# tmp = self._device.readList(AM2315_READREG,8)
+				tmp = bus.read_i2c_block_data(AM2315_I2CADDR,AM2315_READREG, 8)
 				# IF WE HAVE DATA, LETS EXIT THIS LOOP
 				if tmp != None:
+					#Check crc for data errors
+					if check_crc(tmp) == False:
+						self.error = True
+						break
+					else:
+						self.error = False
+
 					logging.debug('am2315: have data!')
 					# GET THE DATA OUT OF THE LIST WE READ
 					self.humidity = ((tmp[2] << 8) | tmp[3]) / 10.0
 					self.temperature = (((tmp[4] & 0x7F) << 8) | tmp[5]) / 10.0
 					if (tmp[4] & 0x80):
 						self.temperature = -self.temperature
-					logging.debug('am2315: humidity: %.3f, temperature: %.3f',self.humidity,self.temperature)
+					logging.debug('am2315: humidity: %.3f, temperature: %.3f, errors: %r',self.humidity,self.temperature,self.error)
 					break
 			except:
 				count += 1
 				time.sleep(0.01)
 		
- 
+ 	def check_crc(self,dbuf):
+		crc_res = _calculate_crc(dbuf,6)
+		crc = (dbuf[7] << 8) + dbuf[6]
+
+		# print("CRC_res:",crc_res)
+		# print("CRC", crc)
+		return crc==crc_res
+
 	def read_temperature(self):
 		logging.debug('am2315: read_temperature called')
 		self._read_data()
@@ -82,4 +114,5 @@ if __name__ == "__main__":
 	print(am2315.read_temperature() )
 	print(am2315.read_humidity() )
 	print(am2315.read_humidity_temperature() )
+	print(am2315.read_humidity_temperatureF() )
 	
