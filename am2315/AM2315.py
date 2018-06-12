@@ -27,7 +27,7 @@ class AM2315:
 		self.temperature = 0
 		self.error = False
 
-	def _calculate_crc(self,blength):
+	def _calculate_crc(self,buffer,blength):
 		crc = 0xFFFF
 		w = 0
 		while blength:
@@ -88,7 +88,7 @@ class AM2315:
 				time.sleep(0.01)
 		
 	def check_crc(self,dbuf):
-		crc_res = self._calculate_crc(6)
+		crc_res = self._calculate_crc(dbuf,6)
 		crc = (dbuf[7] << 8) + dbuf[6]
 
 		# print("CRC_res:",crc_res)
