@@ -66,6 +66,7 @@ class AM2315:
 					#Check crc for data errors
 					if self.check_crc(tmp) == False:
 						self.error = True
+						print("crc_error")
 						break
 					else:
 						self.error = False
@@ -78,7 +79,8 @@ class AM2315:
 						self.temperature = -self.temperature
 					logging.debug('am2315: humidity: %.3f, temperature: %.3f, errors: %r',self.humidity,self.temperature,self.error)
 					break
-			except:
+			except Exception as e:
+				print(e)
 				count += 1
 				time.sleep(0.01)
 		
