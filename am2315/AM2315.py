@@ -27,16 +27,19 @@ class AM2315:
 		self.temperature = 0
 		self.error = False
 
-	def _calculate_crc(self,blength):
+	def calculate_crc(self,blength):
 		crc = 0xFFFF
-		blength = blength - 1 
+		w = 0
 		while blength:
 			blength = blength - 1
-			if crc & 0x01:
-				crc = crc >> 1
-				crc = crc ^ 0xA001
-			else:
-				crc = crc >> 1
+			crc = crc ^ buffer[w]
+			w = w + 1
+			for i in range(0,8):
+				if crc & 0x01:
+					crc = crc >> 1
+					crc = crc ^ 0xA001
+				else:
+					crc = crc >> 1
 
 		return crc
 
