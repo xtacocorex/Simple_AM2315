@@ -27,7 +27,7 @@ class AM2315:
 		self.temperature = 0
 		self.error = False
 
-	def calculate_crc(self,blength):
+	def _calculate_crc(self,blength):
 		crc = 0xFFFF
 		w = 0
 		while blength:
