@@ -6,7 +6,7 @@
 # MODULE IMPORTS
 import time
 import logging
-from smbus2 import SMBus
+from smbus2 import SMBus, SMBusWrapper
 
 # GLOBAL VARIABLES
 AM2315_I2CADDR = 0x5C
@@ -21,7 +21,7 @@ class AM2315:
 		# 	import Adafruit_GPIO.I2C as I2C
 		# 	i2c = I2C
 		# self._device = i2c.get_i2c_device(address, **kwargs)
-		self.bus = SMBus(1)
+		self.bus_num = 1
 		self._logger = logging.getLogger('am2315.AM2315')
 		self.humidity = 0
 		self.temperature = 0
@@ -54,16 +54,16 @@ class AM2315:
 		while count <= MAXREADATTEMPT:
 			try:
 				logging.debug('am2315: read attempt: %d',count)
-				# WAKE UP
-				# self._device.write8(AM2315_READREG,0x00)
-				self.bus.write_byte_data(AM2315_I2CADDR,AM2315_READREG,0)
-				time.sleep(0.09)
-				# TELL THE DEVICE WE WANT 4 BYTES OF DATA
-				# self._device.writeList(AM2315_READREG,[0x00, 0x04])
-				self.bus.write_i2c_block_data(AM2315_I2CADDR,AM2315_READREG,[0x00,0x04])
-				time.sleep(0.09)
-				# tmp = self._device.readList(AM2315_READREG,8)
-				tmp = self.bus.read_i2c_block_data(AM2315_I2CADDR,AM2315_READREG, 8)
+				
+				with SMBusWrapper(self.bus_num) as bus:
+					# WAKE UP
+					bus.write_byte_data(AM2315_I2CADDR,AM2315_READREG,0)
+					time.sleep(0.09)
+					# TELL THE DEVICE WE WANT 4 BYTES OF DATA
+					bus.write_i2c_block_data(AM2315_I2CADDR,AM2315_READREG,[0x00,0x04])
+					time.sleep(0.09)
+					# READ THE DATA
+					tmp = bus.read_i2c_block_data(AM2315_I2CADDR,AM2315_READREG, 8)
 				# IF WE HAVE DATA, LETS EXIT THIS LOOP
 				if tmp != None:
 					#Check crc for data errors
