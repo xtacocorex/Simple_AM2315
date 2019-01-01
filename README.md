@@ -8,18 +8,18 @@ This requires the Adafruit_Python_GPIO library to work:
 - To install:
 
  ```
- git clone https://github.com/xtacocorex/Simple_AM2315.git
- cd Simple_AM2315
- sudo python setup.py install
+git clone https://github.com/xtacocorex/Simple_AM2315.git
+cd Simple_AM2315
+sudo python setup.py install
  ```
 
 - To Use:
 
 ```
- from am2315 import AM2315
- sens = AM2315.AM2315()
- sens.read_temperature()
- sens.read_humidity()
- sens.read_humidity_temperature()
+from am2315 import AM2315
+sens = AM2315.AM2315()
+sens.read_temperature()
+sens.read_humidity()
+sens.read_humidity_temperature()
 ```
 

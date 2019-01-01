@@ -17,6 +17,6 @@ setup(name              = 'Simple_AM2315',
       license           = 'MIT',
       classifiers       = classifiers,
       url               = 'https://github.com/xtacocorex/Simple_AM2315',
-      dependency_links  = ['https://github.com/adafruit/Adafruit_Python_GPIO/tarball/master#egg=Adafruit-GPIO-0.6.5'],
-      install_requires  = ['Adafruit-GPIO>=0.6.5'],
+      dependency_links  = [],
+      install_requires  = [],
       packages          = find_packages())
